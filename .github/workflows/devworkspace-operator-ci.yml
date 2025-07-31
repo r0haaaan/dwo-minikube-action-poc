@@ -41,12 +41,14 @@ jobs:
 
       - name: Build DevWorkspace Operator
         run: |
+          cd devworkspace-operator
           export DWO_IMG=ttl.sh/devworkspace-operator:15m
           export NAMESPACE=devworkspace-controller
           make docker
 
       - name: Deploy DevWorkspace Operator to Minikube
         run: |
+          cd devworkspace-operator
           make install
           kubectl rollout status deployment/devworkspace-controller-manager -n devworkspace-controller --timeout=120s
 
