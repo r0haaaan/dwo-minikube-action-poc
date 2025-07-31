@@ -59,6 +59,7 @@ jobs:
 
       - name: List DevWorkspace Operator pods
         run: |
+          sleep 100
           kubectl get deployment metrics-server -n kube-system
           kubectl get pods -n devworkspace-controller
           kubectl top pods -n devworkspace-controller
