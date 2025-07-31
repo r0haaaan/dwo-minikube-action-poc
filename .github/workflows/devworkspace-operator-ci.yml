@@ -18,18 +18,15 @@ jobs:
           kubernetes version: 'v1.33.0'
           github token: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: Enable Minikube addons cert-manager and metrics-server
+      - name: Install and Enable Minikube addons metrics-server
+        run: |
+          minikube addons enable metrics-server
+          kubectl rollout status deployment/metrics-server -n kube-system --timeout=60s
+
+      - name: Install and Wait for cert-manager to be ready
         run: |
           minikube addons enable cert-manager
-          minikube addons enable metrics-server
-
-      - name: Wait for cert-manager to be ready
-        run: |
           kubectl rollout status deployment/cert-manager -n cert-manager --timeout=120s
-
-      - name: Wait for metrics-server to be ready
-        run: |
-          kubectl rollout status deployment/metrics-server -n kube-system --timeout=60s
     
       - name: Clone DevWorkspace Operator repo
         run: |
