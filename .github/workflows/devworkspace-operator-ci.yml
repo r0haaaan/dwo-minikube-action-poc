@@ -25,7 +25,7 @@ jobs:
 
       - name: Install and Wait for cert-manager to be ready
         run: |
-          minikube addons enable cert-manager
+          kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.18.2/cert-manager.yaml
           kubectl rollout status deployment/cert-manager -n cert-manager --timeout=120s
     
       - name: Clone DevWorkspace Operator repo
