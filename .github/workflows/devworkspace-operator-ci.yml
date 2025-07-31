@@ -27,7 +27,12 @@ jobs:
         run: |
           kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.18.2/cert-manager.yaml
           kubectl rollout status deployment/cert-manager -n cert-manager --timeout=120s
-    
+
+      - name: Enable and Wait for Ingress addon
+        run: |
+          minikube addons enable ingress
+          kubectl rollout status deployment/ingress-nginx-controller -n ingress-nginx --timeout=120s
+
       - name: Clone DevWorkspace Operator repo
         run: |
           git clone https://github.com/devfile/devworkspace-operator.git devworkspace-operator
