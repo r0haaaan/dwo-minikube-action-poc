@@ -43,12 +43,18 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.23'
+      - name: Deploy DevWorkspace Operator (stable)
+        run: |
+          cd devworkspace-operator
+          export DWO_IMG=quay.io/devfile/devworkspace-controller:next
+          export NAMESPACE=devworkspace-controller-stable
+          make install
 
-      - name: Build DevWorkspace Operator
+      - name: Build DevWorkspace Operator from PR
         run: |
           cd devworkspace-operator
           export DWO_IMG=ttl.sh/devworkspace-operator:15m
-          export NAMESPACE=devworkspace-controller
+          export NAMESPACE=devworkspace-controller-pr
           make docker
 
       - name: Deploy DevWorkspace Operator to Minikube
@@ -61,5 +67,7 @@ jobs:
         run: |
           sleep 100
           kubectl get deployment metrics-server -n kube-system
-          kubectl get pods -n devworkspace-controller
-          kubectl top pods -n devworkspace-controller
+          kubectl get pods -n devworkspace-controller-stable
+          kubectl top pods -n devworkspace-controller-stable
+          kubectl get pods -n devworkspace-controller-pr
+          kubectl top pods -n devworkspace-controller-pr
