@@ -53,6 +53,9 @@ jobs:
           export NAMESPACE=$DWO_NAMESPACE_STABLE
           make install
           kubectl rollout status deployment/devworkspace-controller-manager -n $DWO_NAMESPACE_STABLE --timeout=300s
+          sleep 100
+          kubectl top pod -n $DWO_NAMESPACE_STABLE $(kubectl get pods -n $DWO_NAMESPACE_STABLE -l app.kubernetes.io/name=devworkspace-controller -o jsonpath='{.items[0].metadata.name}') > /tmp/stable-metrics.txt
+          make uninstall
 
       - name: Build DevWorkspace Operator from PR
         run: |
@@ -76,8 +79,9 @@ jobs:
         run: |
           sleep 100
           kubectl get deployment metrics-server -n kube-system
-          kubectl get pods -n $DWO_NAMESPACE_STABLE
-          kubectl top pods -n $DWO_NAMESPACE_STABLE
+          cat /tmp/stable-metrics.txt
           kubectl get pods -n $DWO_NAMESPACE_PR
           kubectl logs -lapp.kubernetes.io/name=devworkspace-controller -n$DWO_NAMESPACE_PR
-          kubectl top pods -n $DWO_NAMESPACE_PR
+          kubectl top pod -n $DWO_NAMESPACE_STABLE $(kubectl get pods -n $DWO_NAMESPACE_STABLE -l app.kubernetes.io/name=devworkspace-controller -o jsonpath='{.items[0].metadata.name}') > /tmp/pr-metrics.txt
+          cat /tmp/pr-metrics.txt
+          make uninstall
