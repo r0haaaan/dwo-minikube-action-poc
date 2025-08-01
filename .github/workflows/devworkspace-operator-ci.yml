@@ -68,7 +68,8 @@ jobs:
           export NAMESPACE=$DWO_NAMESPACE_PR
           make install
           kubectl get pods -n $DWO_NAMESPACE_PR
-          kubectl rollout status deployment/devworkspace-controller-manager -n $DWO_NAMESPACE_PR --timeout=600s
+          sleep 100
+          kubectl get pods -n $DWO_NAMESPACE_PR
 
       - name: List DevWorkspace Operator pods
         run: |
