@@ -64,6 +64,8 @@ jobs:
       - name: Deploy DevWorkspace Operator to Minikube
         run: |
           cd devworkspace-operator
+          export DWO_IMG=ttl.sh/devworkspace-operator:15m
+          export NAMESPACE=$DWO_NAMESPACE_PR
           make install
           kubectl rollout status deployment/devworkspace-controller-manager -n $DWO_NAMESPACE_PR --timeout=120s
 
