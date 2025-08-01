@@ -61,12 +61,13 @@ jobs:
           export NAMESPACE=$DWO_NAMESPACE_PR
           make docker
 
-      - name: Deploy DevWorkspace Operator to Minikube
+      - name: Deploy DevWorkspace Operator from PR to Minikube
         run: |
           cd devworkspace-operator
           export DWO_IMG=ttl.sh/devworkspace-operator:15m
           export NAMESPACE=$DWO_NAMESPACE_PR
           make install
+          kubectl get pods -n $DWO_NAMESPACE_PR
           kubectl rollout status deployment/devworkspace-controller-manager -n $DWO_NAMESPACE_PR --timeout=300s
 
       - name: List DevWorkspace Operator pods
