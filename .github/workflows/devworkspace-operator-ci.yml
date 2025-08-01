@@ -79,4 +79,5 @@ jobs:
           kubectl get pods -n $DWO_NAMESPACE_STABLE
           kubectl top pods -n $DWO_NAMESPACE_STABLE
           kubectl get pods -n $DWO_NAMESPACE_PR
+          kubectl logs -lapp.kubernetes.io/name=devworkspace-controller -n$DWO_NAMESPACE_PR
           kubectl top pods -n $DWO_NAMESPACE_PR
