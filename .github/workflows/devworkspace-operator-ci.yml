@@ -82,6 +82,6 @@ jobs:
           cat /tmp/stable-metrics.txt
           kubectl get pods -n $DWO_NAMESPACE_PR
           kubectl logs -lapp.kubernetes.io/name=devworkspace-controller -n$DWO_NAMESPACE_PR
-          kubectl top pod -n $DWO_NAMESPACE_STABLE $(kubectl get pods -n $DWO_NAMESPACE_STABLE -l app.kubernetes.io/name=devworkspace-controller -o jsonpath='{.items[0].metadata.name}') > /tmp/pr-metrics.txt
+          kubectl top pod -n $DWO_NAMESPACE_PR $(kubectl get pods -n $DWO_NAMESPACE_PR -l app.kubernetes.io/name=devworkspace-controller -o jsonpath='{.items[0].metadata.name}') > /tmp/pr-metrics.txt
           cat /tmp/pr-metrics.txt
           make uninstall
