@@ -8,6 +8,8 @@ on:
 env:
   DWO_NAMESPACE_STABLE: devworkspace-controller-stable
   DWO_NAMESPACE_PR: devworkspace-controller-pr
+  MEM_THRESHOLD: 100
+  CPU_THRESHOLD: 50
 
 jobs:
   test-on-minikube:
@@ -71,17 +73,13 @@ jobs:
           export NAMESPACE=$DWO_NAMESPACE_PR
           make install
           kubectl get pods -n $DWO_NAMESPACE_PR
+          kubectl rollout status deployment/devworkspace-controller-manager -n $DWO_NAMESPACE_PR --timeout=300s
           sleep 100
           kubectl get pods -n $DWO_NAMESPACE_PR
           kubectl describe pods -n $DWO_NAMESPACE_PR
 
-      - name: List DevWorkspace Operator pods
+      - name: Save DevWorkspace Operator pods metrics
         run: |
-          sleep 100
-          kubectl get deployment metrics-server -n kube-system
-          cat /tmp/stable-metrics.txt
-          kubectl get pods -n $DWO_NAMESPACE_PR
-          kubectl logs -lapp.kubernetes.io/name=devworkspace-controller -n$DWO_NAMESPACE_PR
           kubectl top pod --no-headers -n $DWO_NAMESPACE_PR $(kubectl get pods -n $DWO_NAMESPACE_PR -l app.kubernetes.io/name=devworkspace-controller -o jsonpath='{.items[0].metadata.name}') > /tmp/pr-metrics.txt
           cat /tmp/pr-metrics.txt
       
@@ -103,7 +101,6 @@ jobs:
           echo "CPU PR pod: ${CPU2_INT}m"
           echo "CPU difference: ${CPU_DIFF}m"
 
-          CPU_THRESHOLD=50
           if (( CPU_DIFF > CPU_THRESHOLD )); then
             echo "❌ CPU usage increased by more than ${CPU_THRESHOLD}m"
             exit 1
@@ -137,7 +134,6 @@ jobs:
           echo "Memory PR pod: ${MEM2_INT}Mi"
           echo "Memory difference: ${MEM_DIFF}Mi"
 
-          MEM_THRESHOLD=100
           if (( MEM_DIFF > MEM_THRESHOLD )); then
             echo "❌ Memory usage increased by more than ${MEM_THRESHOLD}Mi"
             exit 1
