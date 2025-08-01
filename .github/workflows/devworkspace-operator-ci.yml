@@ -8,8 +8,8 @@ on:
 env:
   DWO_NAMESPACE_STABLE: devworkspace-controller-stable
   DWO_NAMESPACE_PR: devworkspace-controller-pr
-  MEM_THRESHOLD: 100
-  CPU_THRESHOLD: 50
+  MEM_THRESHOLD: 0
+  CPU_THRESHOLD: 0
 
 jobs:
   test-on-minikube:
