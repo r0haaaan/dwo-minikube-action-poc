@@ -54,7 +54,7 @@ jobs:
           make install
           kubectl rollout status deployment/devworkspace-controller-manager -n $DWO_NAMESPACE_STABLE --timeout=300s
           sleep 100
-          kubectl top pod -n $DWO_NAMESPACE_STABLE $(kubectl get pods -n $DWO_NAMESPACE_STABLE -l app.kubernetes.io/name=devworkspace-controller -o jsonpath='{.items[0].metadata.name}') > /tmp/stable-metrics.txt
+          kubectl top pod --no-headers -n $DWO_NAMESPACE_STABLE $(kubectl get pods -n $DWO_NAMESPACE_STABLE -l app.kubernetes.io/name=devworkspace-controller -o jsonpath='{.items[0].metadata.name}') > /tmp/stable-metrics.txt
           make uninstall
 
       - name: Build DevWorkspace Operator from PR
@@ -82,6 +82,64 @@ jobs:
           cat /tmp/stable-metrics.txt
           kubectl get pods -n $DWO_NAMESPACE_PR
           kubectl logs -lapp.kubernetes.io/name=devworkspace-controller -n$DWO_NAMESPACE_PR
-          kubectl top pod -n $DWO_NAMESPACE_PR $(kubectl get pods -n $DWO_NAMESPACE_PR -l app.kubernetes.io/name=devworkspace-controller -o jsonpath='{.items[0].metadata.name}') > /tmp/pr-metrics.txt
+          kubectl top pod --no-headers -n $DWO_NAMESPACE_PR $(kubectl get pods -n $DWO_NAMESPACE_PR -l app.kubernetes.io/name=devworkspace-controller -o jsonpath='{.items[0].metadata.name}') > /tmp/pr-metrics.txt
           cat /tmp/pr-metrics.txt
-          make uninstall
+      
+      - name: Compare CPU usage
+        run: |
+          convert_cpu() {
+            echo "${1%m}"
+          }
+
+          CPU1=$(cat /tmp/stable-metrics.txt | awk '{print $2}')
+          CPU2=$(cat /tmp/pr-metrics.txt | awk '{print $2}')
+
+          CPU1_INT=$(convert_cpu $CPU1)
+          CPU2_INT=$(convert_cpu $CPU2)
+
+          CPU_DIFF=$(( CPU2_INT - CPU1_INT ))
+
+          echo "CPU stable pod: ${CPU1_INT}m"
+          echo "CPU PR pod: ${CPU2_INT}m"
+          echo "CPU difference: ${CPU_DIFF}m"
+
+          CPU_THRESHOLD=50
+          if (( CPU_DIFF > CPU_THRESHOLD )); then
+            echo "❌ CPU usage increased by more than ${CPU_THRESHOLD}m"
+            exit 1
+          fi
+          echo "✅ CPU usage within threshold."
+
+      - name: Compare Memory usage
+        run: |
+          convert_mem() {
+            val=$1
+            if [[ $val == *Ki ]]; then
+              echo $(( ${val%Ki} / 1024 ))
+            elif [[ $val == *Mi ]]; then
+              echo ${val%Mi}
+            elif [[ $val == *Gi ]]; then
+              echo $(( ${val%Gi} * 1024 ))
+            else
+              echo 0
+            fi
+          }
+
+          MEM1=$(cat /tmp/stable-metrics.txt | awk '{print $3}')
+          MEM2=$(cat /tmp/pr-metrics.txt | awk '{print $3}')
+
+          MEM1_INT=$(convert_mem $MEM1)
+          MEM2_INT=$(convert_mem $MEM2)
+
+          MEM_DIFF=$(( MEM2_INT - MEM1_INT ))
+
+          echo "Memory stable pod: ${MEM1_INT}Mi"
+          echo "Memory PR pod: ${MEM2_INT}Mi"
+          echo "Memory difference: ${MEM_DIFF}Mi"
+
+          MEM_THRESHOLD=100
+          if (( MEM_DIFF > MEM_THRESHOLD )); then
+            echo "❌ Memory usage increased by more than ${MEM_THRESHOLD}Mi"
+            exit 1
+          fi
+          echo "✅ Memory usage within threshold."
